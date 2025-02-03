@@ -1,0 +1,2 @@
+- include: set-docker-swarm.yml
+- include: add-labels.yml
