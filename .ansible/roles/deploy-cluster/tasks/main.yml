@@ -1,0 +1,11 @@
+---
+#- name: Init swarm cluster
+#  ansible.builtin.include_tasks: set-docker-swarm.yml
+#  tags:
+#    - init_cluster
+
+- name: Add labels to swarm manager/worker
+  ansible.builtin.include_tasks: add-labels.yml
+  tags:
+    - cluster_labels
+

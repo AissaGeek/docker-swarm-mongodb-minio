@@ -1,0 +1,14 @@
+[swarm_managers]
+manager-01  ansible_host=127.0.0.1  swarm_role=manager
+
+[swarm_workers]
+worker-01   ansible_host=localhost  swarm=w-01  label=worker-01
+worker-02   ansible_host=localhost  swarm=w-02  label=worker-02
+worker-03   ansible_host=localhost  swarm=w-03  label=worker-03
+
+[all:children]
+swarm_managers
+swarm_workers
+
+[all:vars]
+ansible_connection=local

@@ -18,7 +18,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.replica == worker-01
+          - node.labels.worker.replica == worker-01
 
   mdb-02:
     image: mongo:7.0.5
@@ -32,7 +32,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.replica == worker-02
+          - node.labels.worker.replica == worker-02
 
   mdb-03:
     image: mongo:7.0.5
@@ -46,7 +46,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.replica == worker-03
+          - node.labels.worker.replica == worker-03
 
   mongo-init:
     image: mongo:7.0.5
@@ -57,7 +57,7 @@ services:
     volumes:
       - ./files/assets/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./files/assets/mongo/init.sh:/init.sh:ro
-    entrypoint: [ "/bin/bash", "/init.sh"]
+    entrypoint: ["/bin/bash", "/init.sh"]
     networks:
       - mongo
     deploy:
