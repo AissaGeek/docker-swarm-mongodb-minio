@@ -1,65 +1,127 @@
 networks:
   mongo:
-    driver: overlay
-    attachable: true
+#    driver: overlay
+#    attachable: true
+
+volumes:
+  sharedconfig:
 
 services:
-  mdb-01:
+  mongo-1:
     image: mongo:7.0.5
     networks:
       - mongo
     volumes:
-      - /data/mdb-01:/data/db
-    command: mongod --replSet datars --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --noauth
+      - '/data/mdb-01:/data/db'
+      - 'sharedconfig:/data'
+    entrypoint: >
+      /bin/bash -c '
+      openssl rand -base64 756 > /data/keyfile.key &&
+      chmod 400 /data/keyfile.key &&
+      chown mongodb:mongodb /data/keyfile.key &&
+      /usr/local/bin/docker-entrypoint.sh mongod --replSet rs0 --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --keyFile /data/keyfile.key'
     ports:
-      - "27217:27017"
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.worker.replica == worker-01
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    healthcheck:
+      test: mongosh
+        -u $${MONGO_INITDB_ROOT_USERNAME}
+        -p $${MONGO_INITDB_ROOT_PASSWORD}
+        --eval "try { rs.status() } catch (err) { console.log('Cannot init rs yet.')}" | mongosh --port 27017 --quiet
+      interval: 5m
+      timeout: 10s
+      retries: 30
+      start_period: 0s
+#    deploy:
+#      mode: replicated
+#      replicas: 1
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-01
 
-  mdb-02:
+  mongo-2:
     image: mongo:7.0.5
     networks:
       - mongo
     volumes:
-      - /data/mdb-02:/data/db
-    command: mongod --replSet datars --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --noauth
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.worker.replica == worker-02
+      - '/data/mdb-02:/data/db'
+      - 'sharedconfig:/data'
+    command: mongod --replSet rs0 --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --keyFile /data/keyfile.key
+    ports:
+      - "27018:27017"
+    depends_on:
+      mongo-1:
+        condition: service_started
+#    deploy:
+#      mode: replicated
+#      replicas: 1
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-02
 
-  mdb-03:
+  mongo-3:
     image: mongo:7.0.5
     networks:
       - mongo
     volumes:
-      - /data/mdb-03:/data/db
-    command: mongod --replSet datars --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --noauth
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints:
-          - node.labels.worker.replica == worker-03
+      - '/data/mdb-03:/data/db'
+      - 'sharedconfig:/data'
+    command: mongod --replSet rs0 --dbpath /data/db --bind_ip 0.0.0.0 --port 27017 --keyFile /data/keyfile.key
+    ports:
+      - "27019:27017"
+    depends_on:
+      mongo-1:
+        condition: service_started
+#    deploy:
+#      mode: replicated
+#      replicas: 1
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-03
+
+    # Add this service to your existing docker-compose.yml
+  mongo-express:
+    image: mongo-express:1.0.2-18-alpine3.18
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-1
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_BASICAUTH_USERNAME: ibf_user
+      ME_CONFIG_BASICAUTH_PASSWORD: ibf_user
+      ME_CONFIG_SITE_BASEURL: /
+      ME_CONFIG_MONGODB_URL: "mongodb://admin:admin@mongo-1:27017,mongo-2:27017,mongo-3:27017/?replicaSet=rs0&authSource=admin"
+    ports:
+      - "8081:8081"
+    networks:
+      - mongo
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
   mongo-init:
     image: mongo:7.0.5
     depends_on:
-      - mdb-01
-      - mdb-02
-      - mdb-03
+      - mongo-1
+      - mongo-2
+      - mongo-3
     volumes:
-      - ./files/assets/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-      - ./files/assets/mongo/init.sh:/init.sh:ro
+      - ../mongo/init.sh:/init.sh:ro
+      - ../mongo/mongo-init.js:/data/mongo-init.js:ro
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    env_file:
+      - ../mongo/.env.mongo
     entrypoint: ["/bin/bash", "/init.sh"]
     networks:
       - mongo
-    deploy:
-      restart_policy:
-        condition: none
+    restart: no
+#    deploy:
+#      restart_policy:
+#        condition: none
