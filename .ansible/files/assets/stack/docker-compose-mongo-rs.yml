@@ -24,7 +24,7 @@ services:
       test: mongosh
         -u $${MONGO_INITDB_ROOT_USERNAME}
         -p $${MONGO_INITDB_ROOT_PASSWORD}
-        --eval "try { rs.status() } catch (err) { console.log('Cannot init rs yet.')}" | mongosh --port 27017 --quiet
+        --eval "try { rs.status() } catch (err) { print('Cannot init rs yet.')}" | mongosh --port 27017 --quiet
       interval: 5m
       timeout: 10s
       retries: 30
