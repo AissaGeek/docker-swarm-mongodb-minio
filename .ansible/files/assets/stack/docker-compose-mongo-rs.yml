@@ -1,8 +1,3 @@
-networks:
-  mongo:
-#    driver: overlay
-#    attachable: true
-
 volumes:
   sharedconfig:
 
@@ -34,12 +29,6 @@ services:
       timeout: 10s
       retries: 30
       start_period: 0s
-#    deploy:
-#      mode: replicated
-#      replicas: 1
-#      placement:
-#        constraints:
-#          - node.labels.worker.replica == worker-01
 
   mongo-2:
     image: mongo:7.0.5
@@ -52,14 +41,7 @@ services:
     ports:
       - "27018:27017"
     depends_on:
-      mongo-1:
-        condition: service_started
-#    deploy:
-#      mode: replicated
-#      replicas: 1
-#      placement:
-#        constraints:
-#          - node.labels.worker.replica == worker-02
+      - mongo-1
 
   mongo-3:
     image: mongo:7.0.5
@@ -72,19 +54,11 @@ services:
     ports:
       - "27019:27017"
     depends_on:
-      mongo-1:
-        condition: service_started
-#    deploy:
-#      mode: replicated
-#      replicas: 1
-#      placement:
-#        constraints:
-#          - node.labels.worker.replica == worker-03
+      - mongo-1
 
     # Add this service to your existing docker-compose.yml
   mongo-express:
     image: mongo-express:1.0.2-18-alpine3.18
-    container_name: mongo-express
     environment:
       ME_CONFIG_MONGODB_SERVER: mongo-1
       ME_CONFIG_MONGODB_PORT: 27017
@@ -100,8 +74,7 @@ services:
     networks:
       - mongo
     depends_on:
-      mongo-init:
-        condition: service_completed_successfully
+      - mongo-init
     restart: unless-stopped
 
   mongo-init:
@@ -118,10 +91,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin
     env_file:
       - ../mongo/.env.mongo
-    entrypoint: ["/bin/bash", "/init.sh"]
+    entrypoint: [ "/bin/bash", "/init.sh" ]
     networks:
       - mongo
-    restart: no
-#    deploy:
-#      restart_policy:
-#        condition: none
+    restart: "no"
