@@ -1,0 +1,6 @@
+cluster:
+  swarm_manager_addr: "{{ hostvars['manager-01'].ansible_host }}"
+  swarm_manager_port: "2377"
+  manager_hostname: "{{ groups['swarm_managers'][0] }}"
+  workers_hostnames: "{{ groups['swarm_workers'] }}"
+  managers_hostnames: "{{ groups['swarm_managers'] }}"

@@ -1,0 +1,77 @@
+---
+- name: Docker Swarm Checking Swarm Mode status
+  ansible.builtin.command: docker info
+  register: docker_info
+  changed_when: false
+  check_mode: false
+
+- name: Docker Swarm Initializing Docker Swarm Mode on first manager
+  ansible.builtin.command: >
+    docker swarm init
+    --listen-addr {{ cluster.swarm_manager_addr }}:{{ cluster.swarm_manager_port }}
+    --advertise-addr {{ cluster.swarm_manager_addr }}
+  when: >
+    'Swarm: inactive' in docker_info.stdout and
+    inventory_hostname == cluster.manager_hostname
+  register: output_swarm
+  changed_when: output_swarm.rc != 0
+
+
+- name: Docker Swarm - Capturing Docker Swarm Worker join-token
+  ansible.builtin.command: docker swarm join-token -q worker
+  register: docker_swarm_worker_token
+  changed_when: false
+  when: inventory_hostname == cluster.manager_hostname
+
+- name: Docker Swarm - Capturing Docker Swarm Manager join-token
+  ansible.builtin.command: docker swarm join-token -q manager
+  register: docker_swarm_manager_token
+  changed_when: false
+  when: inventory_hostname == cluster.manager_hostname
+
+- name: Docker Swarm - Defining Docker Swarm Manager Address
+  ansible.builtin.set_fact:
+    docker_swarm_manager_address: "{{ cluster.swarm_manager_addr }}:{{ cluster.swarm_manager_port }}"
+  changed_when: false
+  when: inventory_hostname == cluster.manager_hostname
+
+- name: Debug docker_swarm_manager_address
+  ansible.builtin.debug:
+    msg: "docker_swarm_manager_address : {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_address'] }}"
+  when: inventory_hostname != cluster.manager_hostname
+
+- name: Debug leader manager join token
+  ansible.builtin.debug:
+    msg: "docker_swarm_manager_address manager join token : {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_token'].stdout }}"
+  when: inventory_hostname != cluster.manager_hostname
+
+- name: Debug leader worker join token
+  ansible.builtin.debug:
+    msg: "docker_swarm_manager_address worker join token : {{ hostvars[cluster.manager_hostname]['docker_swarm_worker_token'].stdout }}"
+  when: inventory_hostname != cluster.manager_hostname
+
+- name: Docker Swarm - Joining Additional Docker Swarm Managers To Cluster
+  ansible.builtin.command: >
+    docker swarm join
+    --token {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_token'].stdout }}
+    {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_address'] }}
+  when: >
+    inventory_hostname != cluster.manager_hostname and
+    inventory_hostname in managers_hostnames and
+    'Swarm: active' not in docker_info.stdout and
+    'Swarm: pending' not in docker_info.stdout
+  register: output_join_manager
+  changed_when: output_join_manager.rc != 0
+
+
+- name: Docker Swarm - Joining Docker Swarm Workers To Cluster
+  ansible.builtin.command: >
+    docker swarm join
+    --token {{ hostvars[cluster.manager_hostname]['docker_swarm_worker_token'].stdout }}
+    {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_address'] }}
+  when: >
+    inventory_hostname in  workers_hostnames and
+    'Swarm: active' not in docker_info.stdout and
+    'Swarm: pending' not in docker_info.stdout
+  register: output_join_worker
+  changed_when: output_join_worker.rc != 0

@@ -1,0 +1,7 @@
+- name: Deploy Multi Node Swarm Cluster
+  hosts: all
+  roles:
+    - role: deploy-cluster
+      tags:
+        - cluster
+      become: true

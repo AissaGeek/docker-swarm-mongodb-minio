@@ -1,0 +1,26 @@
+- name: Mongo Swarm - Checking Docker Node labels
+  ansible.builtin.shell:
+    cmd: |
+      docker node ls -q | \
+      xargs docker node inspect -f \
+      {% raw %}'{{ .ID }} [{{ .Description.Hostname }}]: {{ range $k, $v := .Spec.Labels }}{{ $k }}={{ $v }} {{end}}'{% endraw %}
+    executable: /bin/bash
+  register: "docker_node_labels"
+  changed_when: false
+  check_mode: false
+  become: true
+  when: >
+    inventory_hostname == cluster.manager_hostname
+  tags:
+    - mongo-swarm
+
+- name: Mongo Swarm - Adding Docker Node labels for Mongo instances
+  ansible.builtin.shell:
+    cmd: |
+      docker node update --label-add worker.replica={{ hostvars[item]['label'] }} $(docker node ls -q -f name={{ hostvars[item]['swarm'] }})
+    executable: /bin/bash
+  changed_when: false
+  become: true
+  when: >
+    inventory_hostname == cluster.manager_hostname and 'worker.replica' not in docker_node_labels
+  with_items: "{{ groups['swarm_workers'] }}"
