@@ -57,7 +57,7 @@
     {{ hostvars[cluster.manager_hostname]['docker_swarm_manager_address'] }}
   when: >
     inventory_hostname != cluster.manager_hostname and
-    inventory_hostname not in managers_hostnames and
+    inventory_hostname in managers_hostnames and
     'Swarm: active' not in docker_info.stdout and
     'Swarm: pending' not in docker_info.stdout
   register: output_join_manager
