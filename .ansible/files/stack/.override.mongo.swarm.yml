@@ -1,0 +1,54 @@
+networks:
+  webapi-cluster:
+    driver: overlay
+    attachable: true
+
+services:
+  mongo-1:
+    networks:
+      - webapi-cluster
+    deploy:
+      mode: replicated
+      replicas: 1
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-01
+
+  mongo-2:
+    networks:
+      - webapi-cluster
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-02
+
+  mongo-3:
+    networks:
+      - webapi-cluster
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-03
+
+    # Add this service to your existing docker-compose.yml
+  mongo-express:
+    networks:
+      - webapi-cluster
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  mongo-init:
+    networks:
+      - webapi-cluster
+    deploy:
+      restart_policy:
+        condition: none

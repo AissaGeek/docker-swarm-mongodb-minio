@@ -4,8 +4,6 @@ volumes:
 services:
   mongo-1:
     image: mongo:7.0.5
-    networks:
-      - mongo
     volumes:
       - '/data/mdb-01:/data/db'
       - 'sharedconfig:/data'
@@ -32,8 +30,6 @@ services:
 
   mongo-2:
     image: mongo:7.0.5
-    networks:
-      - mongo
     volumes:
       - '/data/mdb-02:/data/db'
       - 'sharedconfig:/data'
@@ -45,8 +41,6 @@ services:
 
   mongo-3:
     image: mongo:7.0.5
-    networks:
-      - mongo
     volumes:
       - '/data/mdb-03:/data/db'
       - 'sharedconfig:/data'
@@ -71,8 +65,6 @@ services:
       ME_CONFIG_MONGODB_URL: "mongodb://admin:admin@mongo-1:27017,mongo-2:27017,mongo-3:27017/?replicaSet=rs0&authSource=admin"
     ports:
       - "8081:8081"
-    networks:
-      - mongo
     depends_on:
       - mongo-init
     restart: unless-stopped
@@ -84,14 +76,12 @@ services:
       - mongo-2
       - mongo-3
     volumes:
-      - ../mongo/init.sh:/init.sh:ro
-      - ../mongo/mongo-init.js:/data/mongo-init.js:ro
+      - ../assets/mongo/init.sh:/init.sh:ro
+      - ../assets/mongo/mongo-init.js:/data/mongo-init.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
     env_file:
-      - ../mongo/.env.mongo
+      - ../assets/mongo/.env.mongo
     entrypoint: [ "/bin/bash", "/init.sh" ]
-    networks:
-      - mongo
     restart: "no"
