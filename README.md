@@ -78,7 +78,18 @@ Make sure your system meets the requirements for running multiple containers and
    
    This command starts all MongoDB containers along with the Mongo Express dashboard accessible via a web browser.
 
-3. **Administration**  
+3. **Verification**
+   This command below allows to check if the cluster is healthy
+   ```bash
+   docker exec -it container-id  mongosh -u admin -p admin  --eval "rs.status()" |grep health 
+   ```
+   The output must be :
+    ```commandline
+      health: 1,
+      health: 1,
+      health: 1,
+    ```
+4. **Administration**  
    Once the containers are running, access Mongo Express through your browser for database management and monitoring.
 
 ## Usage
