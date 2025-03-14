@@ -1,10 +1,10 @@
 x-minio-entrypoint: &minio-entrypoint
-  ../assets/minio/entrypoint.sh:/entrypoint.sh:ro
+  ./assets/minio/entrypoint.sh:/entrypoint.sh:ro
 x-minio-common: &minio-common
   image: minio/minio:RELEASE.2024-10-13T13-34-11Z
   entrypoint: /entrypoint.sh
   env_file:
-    - ../assets/minio/.env.minio
+    - ./assets/minio/.env.minio
   environment:
     MINIO_FTP_EXTERNAL_IP: "127.0.0.1"
     MINIO_FTP_PORT: "8021"
@@ -28,7 +28,7 @@ services:
       - "30100-30110:30100-30110"
     volumes:
       - minio-data1:/minio-data
-      - ../assets/minio/config/config.json:/root/.minio/config.json:ro
+      - ./assets/minio/config/config.json:/root/.minio/config.json:ro
       - *minio-entrypoint
   minio2:
     <<: *minio-common
@@ -56,10 +56,10 @@ services:
         delay: 5s
         max_attempts: 10
     env_file:
-      - ../assets/minio/.env.minio
+      - ./assets/minio/.env.minio
     volumes:
-      - ../assets/minio/init_minio.sh:/scripts/init_minio.sh
-      - ../assets/minio/config/lifecycle_deletion.json.template:/scripts/lifecycle_deletion.json.template:ro
+      - ./assets/minio/init_minio.sh:/scripts/init_minio.sh
+      - ./assets/minio/config/lifecycle_deletion.json.template:/scripts/lifecycle_deletion.json.template:ro
     depends_on:
       - minio1
       - minio2

@@ -76,12 +76,12 @@ services:
       - mongo-2
       - mongo-3
     volumes:
-      - ../assets/mongo/init.sh:/init.sh:ro
-      - ../assets/mongo/mongo-init.js:/data/mongo-init.js:ro
+      - ./assets/mongo/init.sh:/init.sh:ro
+      - ./assets/mongo/mongo-init.js:/data/mongo-init.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
     env_file:
-      - ../assets/mongo/.env.mongo
+      - ./assets/mongo/.env.mongo
     entrypoint: [ "/bin/bash", "/init.sh" ]
     restart: "no"
