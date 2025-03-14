@@ -1,0 +1,49 @@
+networks:
+  webapi-cluster:
+    driver: overlay
+    attachable: true
+
+x-restart-policy: &restart-policy
+  restart_policy:
+    condition: on-failure
+    max_attempts: 5
+    delay: 5s
+
+services:
+  minio1:
+    deploy:
+      <<: *restart-policy
+    networks:
+      - webapi-cluster
+
+  minio2:
+    deploy:
+      <<: *restart-policy
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-01
+    networks:
+      - webapi-cluster
+
+  minio3:
+    deploy:
+      <<: *restart-policy
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-02
+    networks:
+      - webapi-cluster
+
+  minio4:
+    deploy:
+      <<: *restart-policy
+#      placement:
+#        constraints:
+#          - node.labels.worker.replica == worker-03
+    networks:
+      - webapi-cluster
+
+  create-buckets:
+    networks:
+      - webapi-cluster
+

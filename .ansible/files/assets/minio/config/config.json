@@ -1,0 +1,38 @@
+{
+  "notify": {
+    "amqp": {
+      "1": {
+        "enable": true,
+        "url": "amqp://ibf_user:ibf_user@rabbitmq:5672/",
+        "exchange": "minio",
+        "exchangeType": "direct",
+        "routingKey": "simple_geojson",
+        "mandatory": false,
+        "immediate": false,
+        "durable": true,
+        "internal": false,
+        "noWait": false,
+        "autoDeleted": false,
+        "queueDir": "",
+        "queueLimit": 0,
+        "comment": "Simple GeoJSON notifications"
+      },
+      "2": {
+        "enable": true,
+        "url": "amqp://ibf_user:ibf_user@rabbitmq:5672/",
+        "exchange": "minio",
+        "exchangeType": "direct",
+        "routingKey": "capxml",
+        "mandatory": false,
+        "immediate": false,
+        "durable": true,
+        "internal": false,
+        "noWait": false,
+        "autoDeleted": false,
+        "queueDir": "",
+        "queueLimit": 0,
+        "comment": "CAPXML notifications"
+      }
+    }
+  }
+}

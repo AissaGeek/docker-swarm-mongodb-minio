@@ -1,0 +1,14 @@
+{
+  "Rules": [
+    {
+      "Expiration": {
+        "Days": PLACEHOLDER_DAYS
+      },
+      "ID": "expire-bucket-objects",
+      "Filter": {
+        "Prefix": ""
+      },
+      "Status": "Enabled"
+    }
+  ]
+}
