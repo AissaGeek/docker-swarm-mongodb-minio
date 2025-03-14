@@ -28,4 +28,3 @@ done
 
 echo "Executing database initiation script ... "
 mongosh --host mongo-1 --port 27017 -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin /data/mongo-init.js
-

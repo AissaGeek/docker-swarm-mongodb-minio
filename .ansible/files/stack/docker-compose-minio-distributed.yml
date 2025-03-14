@@ -20,6 +20,7 @@ x-minio-common: &minio-common
 # TODO using nginx reverse proxy, load balancing, and access it through port 9000.
 services:
   minio1:
+    hostname: minio1
     <<: *minio-common
     ports:
       - "9000:9000"
@@ -27,23 +28,26 @@ services:
       - "8021:8021"
       - "30100-30110:30100-30110"
     volumes:
-      - minio-data1:/minio-data
+      - minio-data1:/data
       - ../assets/minio/config/config.json:/root/.minio/config.json:ro
       - *minio-entrypoint
   minio2:
+    hostname: minio2
     <<: *minio-common
     volumes:
-      - minio-data2:/minio-data
+      - minio-data2:/data
       - *minio-entrypoint
   minio3:
+    hostname: minio3
     <<: *minio-common
     volumes:
-      - minio-data3:/minio-data
+      - minio-data3:/data
       - *minio-entrypoint
   minio4:
+    hostname: minio4
     <<: *minio-common
     volumes:
-      - minio-data4:/minio-data
+      - minio-data4:/data
       - *minio-entrypoint
 
   create-buckets:
@@ -62,9 +66,6 @@ services:
       - ../assets/minio/config/lifecycle_deletion.json.template:/scripts/lifecycle_deletion.json.template:ro
     depends_on:
       - minio1
-      - minio2
-      - minio3
-      - minio4
     entrypoint: /bin/bash /scripts/init_minio.sh
     restart: on-failure
 
